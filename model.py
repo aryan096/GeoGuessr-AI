@@ -71,8 +71,8 @@ class GeoLocationCNN(tf.keras.Model):
     def call(self, x):
         """ Passes input image through the network. """
 
-        for layer in self.architecture:
-            x = layer(x)
+        x = self.vgg16(x)
+        x = self.head(x)
 
         return x
 

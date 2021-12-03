@@ -33,6 +33,11 @@ def parse_args():
         train your model. If you want to continue training from where
         you left off, this is how you would load your weights.''')
     parser.add_argument(
+        '--load-vgg',
+        default='vgg16_imagenet.h5',
+        help='''Path to pre-trained VGG-16 file (only applicable to
+        task 3).''')
+    parser.add_argument(
         '--confusion',
         action='store_true',
         help='''Log a confusion matrix at the end of each
@@ -62,7 +67,7 @@ def train(model, datasets, checkpoint_path, logs_path, init_epoch):
             update_freq='batch',
             profile_batch=0),
         ImageLabelingLogger(logs_path, datasets),
-        CustomModelSaver(checkpoint_path, ARGS.task, hp.max_num_weights)
+        CustomModelSaver(checkpoint_path, '3', hp.max_num_weights)
     ]
 
     # Include confusion logger in callbacks if flag set
@@ -99,6 +104,9 @@ def main():
 
     # If loading from a checkpoint, the loaded checkpoint's directory
     # will be used for future checkpoints
+    if os.path.exists(ARGS.load_vgg):
+        ARGS.load_vgg = os.path.abspath(ARGS.load_vgg)
+
     if ARGS.load_checkpoint is not None:
         ARGS.load_checkpoint = os.path.abspath(ARGS.load_checkpoint)
 
@@ -110,17 +118,21 @@ def main():
     # Run script from location of run.py
     os.chdir(sys.path[0])
 
-    datasets = Datasets(ARGS.data, ARGS.task)
+    datasets = Datasets(ARGS.data, '3')
 
     model = GeoLocationCNN()
-    # model(tf.keras.Input(shape=(hp.img_size, hp.img_size, 3)))
     checkpoint_path = "checkpoints" + os.sep + \
-        "your_model" + os.sep + timestamp + os.sep
-    logs_path = "logs" + os.sep + "your_model" + \
+        "vgg_model" + os.sep + timestamp + os.sep
+    logs_path = "logs" + os.sep + "vgg_model" + \
         os.sep + timestamp + os.sep
+    model(tf.keras.Input(shape=(224, 224, 3)))
 
-    # Print summary of model
-    model.summary()
+    # Print summaries for both parts of the model
+    model.vgg16.summary()
+    model.head.summary()
+
+    # Load base of VGG model
+    model.vgg16.load_weights(ARGS.load_vgg, by_name=True)
 
     # Load checkpoints
     if ARGS.load_checkpoint is not None:
