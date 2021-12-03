@@ -6,7 +6,7 @@ from datetime import datetime
 import tensorflow as tf
 
 import hyperparameters as hp
-from models import GeoLocationCNN
+from model import GeoLocationCNN
 from preprocess import Datasets
 from skimage.transform import resize
 from tensorboard_utils import \
