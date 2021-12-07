@@ -4,6 +4,7 @@ from global_land_mask import globe
 import requests
 import matplotlib.pyplot as plt
 from keys import API_KEY
+import json 
 
 min_lat, max_lat = 35, 75 #40
 min_lon, max_lon = -24, 50 #74
@@ -33,7 +34,7 @@ def generate_all_coords():
 					continue
 				lat = arr[i,j,k,0]
 				lon = arr[i,j,k,1]
-				response = requests.get(f'https://maps.googleapis.com/maps/api/streetview/metadata?size=600x300&location={lat},{lon}&radius=5000&key={API_KEY}')
+				response = requests.get(f'https://maps.googleapis.com/maps/api/streetview/metadata?size=600x300&location={lat},{lon}&radius=25000&key={API_KEY}&source=outdoor')
 				r = response.json()
 				if r['status'] != "OK":
 					arr[i,j,k,0] = None
@@ -41,9 +42,9 @@ def generate_all_coords():
 					continue
 				print(r)
 				if r['pano_id'] not in id_dic:
-					id_dic['pano_id'] = r['location']
-	save_h5('np_data', arr)
-	with open("pano_ids.json", "w") as outfile:
+					id_dic[r['pano_id']] = r['location']
+	save_h5('np_data2', arr)
+	with open("pano_ids2.json", "w") as outfile:
 		json.dump(id_dic, outfile)
 	return arr, id_dic
 
@@ -54,23 +55,29 @@ def open_h5(name):
 		data = hf['dataset_1'][:]
 	return data	
 
-def plot(arr):
-	x = arr[:,:,:,1]
-	y = arr[:,:,:,0]
-	plt.plot(x.flatten(),y.flatten(), 'bo', markersize=0.5)
+def plot(pano_ids):
+	x = []
+	y = []
+	for pano in pano_ids:
+		x.append(pano_ids[pano]['lng'])
+		y.append(pano_ids[pano]['lat'])
+	plt.plot(x, y, 'bo', markersize=0.5)
 	plt.show()
 
 #arr, id_dic = generate_all_coords()
-arr = open_h5("np_data")
+#arr = open_h5("np_data")
+with open('pano_ids2.json') as json_file:
+	d = json.load(json_file)
+plot(d)
 #print(arr[39, 43, : ,:])
-print(np.count_nonzero(~np.isnan(arr.flatten())))
-plot(arr)
-s = 0
-for i in range(arr.shape[0]):
-	for j in range(arr.shape[1]):
-		if np.count_nonzero(~np.isnan(arr[i,j,:,:])) > 0:
-			s += 1
-print(s)	
+# print(np.count_nonzero(~np.isnan(arr.flatten())))
+# plot(arr)
+# s = 0
+# for i in range(arr.shape[0]):
+# 	for j in range(arr.shape[1]):
+# 		if np.count_nonzero(~np.isnan(arr[i,j,:,:])) > 0:
+# 			s += 1
+# print(s)	
 #response = requests.get(f'https://maps.googleapis.com/maps/api/streetview/metadata?size=600x300&location=74.37783861,19.16929152&radius=5000&key={API_KEY}')
 #r = response.json()
 #print(r)
