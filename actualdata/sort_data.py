@@ -5,7 +5,9 @@ import h5py
 import matplotlib.pyplot as plt
 #from keys import API_KEY
 import json 
+import shutil
 import os
+import random
 
 min_lat, max_lat = 35, 75 #40
 min_lon, max_lon = -24, 50
@@ -19,31 +21,29 @@ os.mkdir("train")
 os.mkdir("test")
 
 counter = 0
-for item in imagelatlongs.items():
+items = list(imagelatlongs.items())
+for i in range(1000):
+	random.shuffle(items)
+for item in items:
 	coords = item[1]
 	lat = coords["lat"]
 	lon = coords["lng"]
 	latclass = str(lat // num_pixels_in_class)
 	lonclass = str(lon // num_pixels_in_class)
 	img_name = item[0]
+	dirname = "lat" + latclass + "lon" + lonclass
 	if counter < train_size * len(imagelatlongs.items()): #train data
 		try:
-			os.mkdir("train/lat" + latclass + "lon" + lonclass) # create directory for class
-			# Get image from name of image
-			# Move image to directory
+			os.mkdir("train/" + dirname) # create directory for class
+			shutil.copy2("imageziphere/images/" + item[0] + ".jpg", "train/" + dirname)
 		except: #means that directory for class already exists
-			#code to get image from name of image
-			# Move image to directory
-			pass
+			shutil.copy2("imageziphere/images/" + item[0] + ".jpg", "train/" + dirname)
 	else: #test data
 		try:
-			os.mkdir("est/lat" + latclass + "lon" + lonclass) # create directory for class
-			# Get image from name of image
-			# Move image to directory
+			os.mkdir("test/" + dirname) # create directory for class
+			shutil.copy2("imageziphere/images/" + item[0] + ".jpg", "test/" + dirname)
 		except: #means that directory for class already exists
-			#code to get image from name of image
-			# Move image to director
-			pass
+			shutil.copy2("imageziphere/images/" + item[0] + ".jpg", "test/" + dirname)
 	counter += 1
 
 print(len(imagelatlongs.items()))
