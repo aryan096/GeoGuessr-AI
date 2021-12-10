@@ -9,30 +9,47 @@ class GeoGetter:
 		if browser.lower() == "chrome":
 			from selenium.webdriver.chrome.service import Service
 			from webdriver_manager.chrome import ChromeDriverManager
-			s = Service(ChromeDriverManager().install())
-			self.driver = webdriver.Chrome(service=s)
-		else:	
+			try:
+				s = Service(ChromeDriverManager().install())
+				self.driver = webdriver.Chrome(service=s)
+			except:
+				raise Exception("There was a problem loading the Chrome browser.")	
+		else:
+
 			from selenium.webdriver.firefox.service import Service
 			from webdriver_manager.firefox import GeckoDriverManager
-			capabilities = DesiredCapabilities.FIREFOX
-			capabilities["marionette"] = True
-			s = Service(GeckoDriverManager().install())
-			self.driver = webdriver.Firefox(service=s, capabilities=capabilities)
+			try:
+				capabilities = DesiredCapabilities.FIREFOX
+				capabilities["marionette"] = True
+				s = Service(GeckoDriverManager().install())
+				self.driver = webdriver.Firefox(service=s, capabilities=capabilities)
+			except:
+				raise Exception("There was a problem loading the Chrome browser.")		
 
 		if maap.lower() == "europe":
 			self.driver.get("https://www.geoguessr.com/maps/5e14c87e328e461f949ae510")
 		else:
-			assert(False, "Map not supported")
+			raise Exception("Map not supported")
 
 	def get_coordinates(self):
-		# time.sleep(2)
-		# self.driver.refresh()
-		# time.sleep(2)
+		time.sleep(1)
+		self.driver.refresh()
+		for i in range(5):
+			try:
+				t = self.driver.execute_script('return JSON.parse(document.querySelectorAll("#__NEXT_DATA__")[0].text)')
+				data = self.driver.execute_script('return JSON.parse(document.querySelectorAll("#__NEXT_DATA__")[0].text).props.pageProps.game.rounds')
+				break
+			except:
+				time.sleep(1)
+				continue
+		try:
+			data = list(data)
+		except UnboundLocalError:
+			raise Exception("Data could not extracted from GeoGuessr")
 		
-		j = self.driver.execute_script('return JSON.parse(document.querySelectorAll("#__NEXT_DATA__")[0].text).props.pageProps.game.rounds')
-		j = list(j)
-		print(j)
+		lat = data['lat']
+		lng = data['lng']
+		return lat, lng
 
 	def quit(self):
 		self.driver.quit()
-#t = GeoGetter("chrome", "europe")
