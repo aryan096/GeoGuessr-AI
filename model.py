@@ -62,7 +62,7 @@ class GeoLocationCNN(tf.keras.Model):
                Dropout(rate=0.4),
                Dense(512, activation="relu"),
                Dense(256, activation="relu"),
-               Dense(15, activation="softmax")
+               Dense(96, activation="softmax")
         ]
 
         self.vgg16 = tf.keras.Sequential(self.vgg16, name="vgg_base")
@@ -70,15 +70,19 @@ class GeoLocationCNN(tf.keras.Model):
 
     def call(self, x):
         """ Passes input image through the network. """
-
+        print("call")
         x = self.vgg16(x)
+        print("all")
         x = self.head(x)
-
+        print("the")
+       
         return x
 
     @staticmethod
     def loss_fn(labels, predictions):
         """ Loss function for the model. """
-
+        print("monsters")
         cce = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+        print("sjdkfhlasjd")
+        print(cce(labels, predictions))
         return cce(labels, predictions)

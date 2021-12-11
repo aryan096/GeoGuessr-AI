@@ -46,4 +46,4 @@ for item in items:
 			shutil.copy2("imageziphere/images/" + item[0] + ".jpg", "test/" + dirname)
 	counter += 1
 
-print(len(imagelatlongs.items()))
+print(len(imagelatlongs.items()), "sorted into grid squares and separated into train and test data")
