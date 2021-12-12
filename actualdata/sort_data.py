@@ -17,8 +17,11 @@ train_size = 0.8
 with open('../mapping/pano_ids.json') as json_file:
 	imagelatlongs = json.load(json_file)
 
-os.mkdir("train")
-os.mkdir("test")
+try:
+	os.mkdir("train")
+	os.mkdir("test")
+except FileExistsError:
+	pass
 
 counter = 0
 items = list(imagelatlongs.items())
@@ -32,18 +35,14 @@ for item in items:
 	lonclass = str(lon // num_pixels_in_class)
 	img_name = item[0]
 	dirname = "lat" + latclass + "lon" + lonclass
+	if not os.path.isdir("train/" + dirname):
+		os.mkdir("train/" + dirname)
+		os.mkdir("test/" + dirname)
 	if counter < train_size * len(imagelatlongs.items()): #train data
-		try:
-			os.mkdir("train/" + dirname) # create directory for class
-			shutil.copy2("imageziphere/images/" + item[0] + ".jpg", "train/" + dirname)
-		except: #means that directory for class already exists
-			shutil.copy2("imageziphere/images/" + item[0] + ".jpg", "train/" + dirname)
+		
+		shutil.copy2("imageziphere/images/" + item[0] + ".jpg", "train/" + dirname)
 	else: #test data
-		try:
-			os.mkdir("test/" + dirname) # create directory for class
-			shutil.copy2("imageziphere/images/" + item[0] + ".jpg", "test/" + dirname)
-		except: #means that directory for class already exists
-			shutil.copy2("imageziphere/images/" + item[0] + ".jpg", "test/" + dirname)
+		shutil.copy2("imageziphere/images/" + item[0] + ".jpg", "test/" + dirname)
 	counter += 1
 
 print(len(imagelatlongs.items()), "sorted into grid squares and separated into train and test data")

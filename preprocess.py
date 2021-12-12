@@ -3,6 +3,7 @@ import random
 import numpy as np
 from PIL import Image
 import tensorflow as tf
+import json
 
 import hyperparameters as hp
 
@@ -28,6 +29,10 @@ class Datasets():
         self.std = np.zeros((3,))
         self.calc_mean_and_std()
 
+        if task == 10:
+            self.test_data = self.get_data(
+                data_path, task == '3', False, False)
+            return
         # Setup data generators
         self.train_data = self.get_data(
             os.path.join(self.data_path, "train/"), task == '3', True, True)
@@ -56,13 +61,13 @@ class Datasets():
 
         # Allocate space in memory for images
         data_sample = np.zeros(
-            (hp.preprocess_sample_size, hp.img_size, hp.img_size, 3))
+            (hp.preprocess_sample_size, 320, 1280, 3))
 
         # Import images
         for i, file_path in enumerate(file_list):
             img = Image.open(file_path)
-            img = img.resize((hp.img_size, hp.img_size))
-            img = np.array(img, dtype=np.float32)
+            img = img.resize((2560//2, 640//2))
+            img = np.array(img, dtype=np.float16)
             img /= 255.
 
             # Grayscale -> RGB
@@ -107,7 +112,7 @@ class Datasets():
 
     def preprocess_fn(self, img):
         """ Preprocess function for ImageDataGenerator. """
-
+        #print("processing an image")
         img = img / 255.
         img = self.standardize(img)
         return img
@@ -140,7 +145,7 @@ class Datasets():
             # ============================================================
 
             data_gen = tf.keras.preprocessing.image.ImageDataGenerator(
-                preprocessing_function=self.preprocess_fn, width_shift_range=[-200,200], height_shift_range=0.5, horizontal_flip=True, rotation_range=90, brightness_range=[0.2,1.0], zoom_range=[0.5,1.0])
+                preprocessing_function=self.preprocess_fn)
 
             # ============================================================
         else:
@@ -160,7 +165,7 @@ class Datasets():
         # Form image data generator from directory structure
         data_gen = data_gen.flow_from_directory(
             path,
-            target_size=(img_size, img_size),
+            target_size=(2560//2, 640//2),
             class_mode='sparse',
             batch_size=hp.batch_size,
             shuffle=shuffle,
@@ -178,4 +183,8 @@ class Datasets():
                 class_index = data_gen.class_indices[img_class]
                 self.classes[int(class_index)] = img_class
 
+        with  open("class_to_idx.json", "w") as file:
+            json.dump(self.class_to_idx, file)
+        with  open("idx_to_class.json", "w") as file:
+            json.dump(self.idx_to_class, file)    
         return data_gen

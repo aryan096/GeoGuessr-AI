@@ -97,7 +97,7 @@ def test(model, test_data):
 
 def main():
     """ Main function. """
-
+    #tf.config.set_visible_devices([], 'GPU')
     time_now = datetime.now()
     timestamp = time_now.strftime("%m%d%y-%H%M%S")
     init_epoch = 0
@@ -106,7 +106,7 @@ def main():
     # will be used for future checkpoints
     if os.path.exists(ARGS.load_vgg):
         ARGS.load_vgg = os.path.abspath(ARGS.load_vgg)
-
+    print("Loading vgg model")    
     if ARGS.load_checkpoint is not None:
         ARGS.load_checkpoint = os.path.abspath(ARGS.load_checkpoint)
 
@@ -125,7 +125,7 @@ def main():
         "vgg_model" + os.sep + timestamp + os.sep
     logs_path = "logs" + os.sep + "vgg_model" + \
         os.sep + timestamp + os.sep
-    model(tf.keras.Input(shape=(224, 224, 3)))
+    model(tf.keras.Input(shape=(1280, 320, 3)))
 
     # Print summaries for both parts of the model
     model.vgg16.summary()

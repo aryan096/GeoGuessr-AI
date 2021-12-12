@@ -1,6 +1,11 @@
 keys.py
 mapping/images/*
 prelimdata/*
+actualdata/train/*
+actualdata/test/*
+actualdata/imageziphere/*
+checkpoints/vgg_model/*
+logs/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

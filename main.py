@@ -2,19 +2,27 @@ import os
 import sys
 import argparse
 from geoguessr_getter import GeoGetter
+from classify import Classifier
+from mapping.mapping import external_single_request
 
 def main(ARGS):
     browser = ARGS.browser
     maap = ARGS.map
     gg = GeoGetter(browser, maap)
-
+    classifier = Classifier()
     for i in range(5):
         print("Round: ", i+1)
         t = input("Please hit enter when ready!")
         lat, lon = gg.get_coordinates()
+        image = external_single_request(lat, lon)
+        classifier.classify(image)
+        classifier.visualize_map()
+
 
     input("Game complete. Please hit enter to quit!")
     gg.quit()
+
+
 
 def parse_args():
     """ Perform command-line argument parsing. """

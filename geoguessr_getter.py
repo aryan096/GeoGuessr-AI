@@ -36,7 +36,7 @@ class GeoGetter:
 		self.driver.refresh()
 		for i in range(5):
 			try:
-				t = self.driver.execute_script('return JSON.parse(document.querySelectorAll("#__NEXT_DATA__")[0].text)')
+				#t = self.driver.execute_script('return JSON.parse(document.querySelectorAll("#__NEXT_DATA__")[0].text)')
 				data = self.driver.execute_script('return JSON.parse(document.querySelectorAll("#__NEXT_DATA__")[0].text).props.pageProps.game.rounds')
 				break
 			except:
@@ -47,8 +47,8 @@ class GeoGetter:
 		except UnboundLocalError:
 			raise Exception("Data could not extracted from GeoGuessr")
 		
-		lat = data['lat']
-		lng = data['lng']
+		lat = data[0]['lat']
+		lng = data[0]['lng']
 		return lat, lng
 
 	def quit(self):

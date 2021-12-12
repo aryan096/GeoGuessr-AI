@@ -12,7 +12,7 @@ class GeoLocationCNN(tf.keras.Model):
         super(GeoLocationCNN, self).__init__()
 
         # OPTIMIZER       
-        self.learning_rate = 0.1      
+        self.learning_rate = 0.001 
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
 
         self.vgg16 = [
@@ -58,11 +58,14 @@ class GeoLocationCNN(tf.keras.Model):
                layer.trainable = False
 
         self.head = [ 
+               # Conv2D(512, 3, 1, padding="same", activation="relu"),
+               # Conv2D(512, 3, 1, padding="same", activation="relu"),
+               # MaxPool2D(2),
                Flatten(),
                Dropout(rate=0.4),
                Dense(512, activation="relu"),
                Dense(256, activation="relu"),
-               Dense(96, activation="softmax")
+               Dense(89, activation="softmax")
         ]
 
         self.vgg16 = tf.keras.Sequential(self.vgg16, name="vgg_base")
@@ -82,7 +85,5 @@ class GeoLocationCNN(tf.keras.Model):
     def loss_fn(labels, predictions):
         """ Loss function for the model. """
         print("monsters")
-        cce = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-        print("sjdkfhlasjd")
-        print(cce(labels, predictions))
-        return cce(labels, predictions)
+        loss = tf.keras.losses.sparse_categorical_crossentropy(labels, predictions)
+        return loss
