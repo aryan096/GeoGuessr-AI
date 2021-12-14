@@ -4,8 +4,12 @@ import argparse
 import re
 from datetime import datetime
 import tensorflow as tf
-from keras.applications import VGG16
-from keras.callbacks import ReduceLROnPlateau
+from tensorflow import keras 
+from tensorflow.keras.applications import VGG16
+from tensorflow.keras.callbacks import ReduceLROnPlateau, ModelCheckpoint
+from tensorflow.keras.layers import \
+    Conv2D, MaxPool2D, Dropout, Flatten, Dense
+
 
 import hyperparameters as hp
 from model import GeoLocationCNN
@@ -130,7 +134,7 @@ def main():
         x = Dense(512, activation='relu')(x)
         x = Dropout(0.5)(x) # Dropout layer to reduce overfitting
         x = Dense(256, activation='relu')(x)
-        x = Dense(8, activation='softmax')(x) # Softmax for multiclass
+        x = Dense(89, activation='softmax')(x) # Softmax for multiclass
         model = Model(inputs=vgg_model.input, outputs=x)
 
         lr_reduce = ReduceLROnPlateau(monitor='val_accuracy', factor=0.6, patience=8, verbose=1, mode='max', min_lr=5e-5)
