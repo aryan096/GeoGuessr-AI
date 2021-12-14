@@ -106,7 +106,7 @@ def main():
 
     # If loading from a checkpoint, the loaded checkpoint's directory
     # will be used for future checkpoints
-    if ARGS.load_vgg is not None and os.path.exists(ARGS.load_vgg):
+    if ARGS.load_vgg is not None:
         use_vgg = 1
 
         checkpoint_path = "checkpoints" + os.sep + \
