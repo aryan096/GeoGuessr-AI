@@ -117,9 +117,6 @@ def main():
 
         datasets = Datasets(ARGS.data)
 
-        print("Loading vgg model")  
-        ARGS.load_vgg = os.path.abspath(ARGS.load_vgg)
-
         vgg_model = VGG16(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
 
         # Freeze four convolution blocks
