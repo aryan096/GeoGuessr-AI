@@ -4,6 +4,8 @@ import argparse
 import re
 from datetime import datetime
 import tensorflow as tf
+from keras.applications import VGG16
+from keras.callbacks import ReduceLROnPlateau
 
 import hyperparameters as hp
 from model import GeoLocationCNN
@@ -12,6 +14,7 @@ from skimage.transform import resize
 from tensorboard_utils import \
         ImageLabelingLogger, ConfusionMatrixLogger, CustomModelSaver
 
+from tensorflow.keras import layers, models, Model, optimizers
 from skimage.io import imread
 from skimage.segmentation import mark_boundaries
 from matplotlib import pyplot as plt
@@ -106,57 +109,68 @@ def main():
     if ARGS.load_vgg is not None and os.path.exists(ARGS.load_vgg):
         use_vgg = 1
 
+        checkpoint_path = "checkpoints" + os.sep + \
+            "vgg_model" + os.sep + timestamp + os.sep
+
+        logs_path = "logs" + os.sep + "vgg_model" + \
+            os.sep + timestamp + os.sep
+
+        datasets = Datasets(ARGS.data)
+
         print("Loading vgg model")  
         ARGS.load_vgg = os.path.abspath(ARGS.load_vgg)
+
+        vgg_model = VGG16(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
+
+        # Freeze four convolution blocks
+        for layer in vgg_model.layers[:15]:
+            layer.trainable = False# Make sure you have frozen the correct layers
+        for i, layer in enumerate(vgg_model.layers):
+            print(i, layer.name, layer.trainable)
+
+        x = vgg_model.output
+        x = Flatten()(x) # Flatten dimensions to for use in FC layers
+        x = Dense(512, activation='relu')(x)
+        x = Dropout(0.5)(x) # Dropout layer to reduce overfitting
+        x = Dense(256, activation='relu')(x)
+        x = Dense(8, activation='softmax')(x) # Softmax for multiclass
+        model = Model(inputs=vgg_model.input, outputs=x)
+
+        lr_reduce = ReduceLROnPlateau(monitor='val_accuracy', factor=0.6, patience=8, verbose=1, mode='max', min_lr=5e-5)
+
+        checkpoint = ModelCheckpoint('vgg16_finetune.h15', monitor= 'val_accuracy', mode= 'max', save_best_only = True, verbose= 1)
   
-    if ARGS.load_checkpoint is not None:
-        ARGS.load_checkpoint = os.path.abspath(ARGS.load_checkpoint)
+        learning_rate= 5e-5
+        model.compile(loss="categorical_crossentropy", optimizer=optimizers.Adam(lr=learning_rate), metrics=["accuracy"])
+        # history = model.fit(X_train, y_train, batch_size = 1, epochs=50, validation_data=(X_test,y_test), callbacks=[lr_reduce,checkpoint])
 
-        # Get timestamp and epoch from filename
-        regex = r"(?:.+)(?:\.e)(\d+)(?:.+)(?:.h5)"
-        init_epoch = int(re.match(regex, ARGS.load_checkpoint).group(1)) + 1
-        timestamp = os.path.basename(os.path.dirname(ARGS.load_checkpoint))
+        if ARGS.evaluate:
+            test(model, datasets.test_data)
 
-    # Run script from location of run.py
-    os.chdir(sys.path[0])
+        else:
+            train(model, datasets, checkpoint_path, logs_path, init_epoch)
 
-    datasets = Datasets(ARGS.data, '3')
 
-    model = GeoLocationCNN()
-    checkpoint_path = "checkpoints" + os.sep + \
-        "vgg_model" + os.sep + timestamp + os.sep
-    logs_path = "logs" + os.sep + "vgg_model" + \
-        os.sep + timestamp + os.sep
-    model(tf.keras.Input(shape=(1280, 320, 3)))
+    # if ARGS.load_checkpoint is not None:
+    #     ARGS.load_checkpoint = os.path.abspath(ARGS.load_checkpoint)
 
-    # Print summaries for both parts of the model
-    if use_vgg:
-        model.vgg16.summary()
-    model.head.summary()
+    #     # Get timestamp and epoch from filename
+    #     regex = r"(?:.+)(?:\.e)(\d+)(?:.+)(?:.h5)"
+    #     init_epoch = int(re.match(regex, ARGS.load_checkpoint).group(1)) + 1
+    #     timestamp = os.path.basename(os.path.dirname(ARGS.load_checkpoint))
 
-    # Load base of VGG model
-    if use_vgg:
-        model.vgg16.load_weights(ARGS.load_vgg, by_name=True)
 
-    # Load checkpoints
-    if ARGS.load_checkpoint is not None:
-        model.load_weights(ARGS.load_checkpoint, by_name=False)
+    # model = GeoLocationCNN()
 
-    # Make checkpoint directory if needed
-    if not ARGS.evaluate and not os.path.exists(checkpoint_path):
-        os.makedirs(checkpoint_path)
+    # model(tf.keras.Input(shape=(1280, 320, 3)))
 
-    # Compile model graph
-    model.compile(
-        optimizer=model.optimizer,
-        loss=model.loss_fn,
-        metrics=["sparse_categorical_accuracy"])
 
-    if ARGS.evaluate:
-        test(model, datasets.test_data)
 
-    else:
-        train(model, datasets, checkpoint_path, logs_path, init_epoch)
+    # # Compile model graph
+    # model.compile(
+    #     optimizer=model.optimizer,
+    #     loss=model.loss_fn,
+    #     metrics=["sparse_categorical_accuracy"])
 
 
 # Make arguments global
