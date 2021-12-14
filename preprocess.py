@@ -62,7 +62,7 @@ class Datasets():
         # Import images
         for i, file_path in enumerate(file_list):
             img = Image.open(file_path)
-            img = img.resize((2560//2, 640//2))
+            img = img.resize((224, 224))
             img = np.array(img, dtype=np.float16)
             img /= 255.
 
@@ -141,7 +141,7 @@ class Datasets():
             # ============================================================
 
             data_gen = tf.keras.preprocessing.image.ImageDataGenerator(
-                preprocessing_function=self.preprocess_fn, zoom_range=0.2, rotation_range=30, width_shift_range=0.2, height_shift_range=0.2, shear_range=0.2)
+                preprocessing_function=self.preprocess_fn, zoom_range=0.2, rotation_range=20, width_shift_range=0.4, height_shift_range=0.4)
 
             # ============================================================
         else:

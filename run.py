@@ -119,6 +119,10 @@ def main():
         logs_path = "logs" + os.sep + "vgg_model" + \
             os.sep + timestamp + os.sep
 
+            # Make checkpoint directory if needed
+        if not ARGS.evaluate and not os.path.exists(checkpoint_path):
+            os.makedirs(checkpoint_path)
+
         datasets = Datasets(ARGS.data)
 
         vgg_model = VGG16(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
@@ -133,7 +137,6 @@ def main():
         x = Flatten()(x) # Flatten dimensions to for use in FC layers
         x = Dense(512, activation='relu')(x)
         x = Dropout(0.5)(x) # Dropout layer to reduce overfitting
-        x = Dense(256, activation='relu')(x)
         x = Dense(89, activation='softmax')(x) # Softmax for multiclass
         model = Model(inputs=vgg_model.input, outputs=x)
 
@@ -141,9 +144,10 @@ def main():
 
         checkpoint = ModelCheckpoint('vgg16_finetune.h15', monitor= 'val_accuracy', mode= 'max', save_best_only = True, verbose= 1)
   
-        learning_rate= 1e-3
+        learning_rate= 1e-4
         model.compile(loss="sparse_categorical_crossentropy", optimizer=optimizers.Adam(lr=learning_rate), metrics=["accuracy"])
-        # history = model.fit(X_train, y_train, batch_size = 1, epochs=50, validation_data=(X_test,y_test), callbacks=[lr_reduce,checkpoint])
+        
+        model.summary()
 
         if ARGS.evaluate:
             test(model, datasets.test_data)
