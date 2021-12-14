@@ -128,14 +128,16 @@ def main():
         vgg_model = VGG16(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
 
         # Freeze four convolution blocks
-        for layer in vgg_model.layers:
+        for layer in vgg_model.layers[:-2]:
             layer.trainable = False# Make sure you have frozen the correct layers
         for i, layer in enumerate(vgg_model.layers):
             print(i, layer.name, layer.trainable)
 
         x = vgg_model.output
         x = Flatten()(x) # Flatten dimensions to for use in FC layers
+        x = Dense(512, activation='relu')(x) # Softmax for multiclass
         x = Dropout(0.3)(x) # Dropout layer to reduce overfitting
+        x = Dense(252, activation='relu')(x) # Softmax for multiclass
         x = Dense(89, activation='softmax')(x) # Softmax for multiclass
         model = Model(inputs=vgg_model.input, outputs=x)
 
