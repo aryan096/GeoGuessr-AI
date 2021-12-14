@@ -141,7 +141,7 @@ class Datasets():
             # ============================================================
 
             data_gen = tf.keras.preprocessing.image.ImageDataGenerator(
-                preprocessing_function=self.preprocess_fn)
+                preprocessing_function=self.preprocess_fn, zoom_range=0.2, rotation_range=30, width_shift_range=0.2, height_shift_range=0.2, shear_range=0.2)
 
             # ============================================================
         else:
