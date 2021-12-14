@@ -13,7 +13,7 @@ class Datasets():
     for preprocessing.
     """
 
-    def __init__(self, data_path, task):
+    def __init__(self, data_path):
 
         self.data_path = data_path
 
@@ -29,15 +29,11 @@ class Datasets():
         self.std = np.zeros((3,))
         self.calc_mean_and_std()
 
-        if task == 10:
-            self.test_data = self.get_data(
-                data_path, task == '3', False, False)
-            return
         # Setup data generators
         self.train_data = self.get_data(
-            os.path.join(self.data_path, "train/"), task == '3', True, True)
+            os.path.join(self.data_path, "train/"), True, True)
         self.test_data = self.get_data(
-            os.path.join(self.data_path, "test/"), task == '3', False, False)
+            os.path.join(self.data_path, "test/"), False, False)
 
     def calc_mean_and_std(self):
         """ Calculate mean and standard deviation of a sample of the
@@ -154,7 +150,7 @@ class Datasets():
                 preprocessing_function=self.preprocess_fn)
 
         # VGG must take images of size 224x224
-        img_size = hp.img_size
+        img_size = 224 if is_vgg else hp.img_size
 
         classes_for_flow = None
 
@@ -165,7 +161,7 @@ class Datasets():
         # Form image data generator from directory structure
         data_gen = data_gen.flow_from_directory(
             path,
-            target_size=(2560//2, 640//2),
+            target_size=(img_size, img_size),
             class_mode='sparse',
             batch_size=hp.batch_size,
             shuffle=shuffle,
