@@ -34,9 +34,7 @@ def parse_args():
         you left off, this is how you would load your weights.''')
     parser.add_argument(
         '--load-vgg',
-        default='vgg16_imagenet.h5',
-        help='''Path to pre-trained VGG-16 file (only applicable to
-        task 3).''')
+        help='''Path to pre-trained VGG-16 file.''')
     parser.add_argument(
         '--confusion',
         action='store_true',
@@ -45,7 +43,7 @@ def parse_args():
         by default as it takes a little bit of time to complete.''')
     parser.add_argument(
         '--data',
-        default='..'+os.sep+'data'+os.sep,
+        default='actualdata'+os.sep,
         help='Location where the dataset is stored.')
     parser.add_argument(
         '--evaluate',
@@ -101,12 +99,16 @@ def main():
     time_now = datetime.now()
     timestamp = time_now.strftime("%m%d%y-%H%M%S")
     init_epoch = 0
+    use_vgg = 0
 
     # If loading from a checkpoint, the loaded checkpoint's directory
     # will be used for future checkpoints
-    if os.path.exists(ARGS.load_vgg):
+    if ARGS.load_vgg is not None and os.path.exists(ARGS.load_vgg):
+        use_vgg = 1
+
+        print("Loading vgg model")  
         ARGS.load_vgg = os.path.abspath(ARGS.load_vgg)
-    print("Loading vgg model")    
+  
     if ARGS.load_checkpoint is not None:
         ARGS.load_checkpoint = os.path.abspath(ARGS.load_checkpoint)
 
@@ -128,11 +130,13 @@ def main():
     model(tf.keras.Input(shape=(1280, 320, 3)))
 
     # Print summaries for both parts of the model
-    model.vgg16.summary()
+    if use_vgg:
+        model.vgg16.summary()
     model.head.summary()
 
     # Load base of VGG model
-    model.vgg16.load_weights(ARGS.load_vgg, by_name=True)
+    if use_vgg:
+        model.vgg16.load_weights(ARGS.load_vgg, by_name=True)
 
     # Load checkpoints
     if ARGS.load_checkpoint is not None:

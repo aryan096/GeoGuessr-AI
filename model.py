@@ -62,19 +62,18 @@ class GeoLocationCNN(tf.keras.Model):
                # Conv2D(512, 3, 1, padding="same", activation="relu"),
                # MaxPool2D(2),
                Flatten(),
-               Dropout(rate=0.4),
-               Dense(512, activation="relu"),
-               Dense(256, activation="relu"),
+              #  Dense(512, activation="relu"),
+               Dense(64, activation="relu"),
                Dense(89, activation="softmax")
         ]
 
-        self.vgg16 = tf.keras.Sequential(self.vgg16, name="vgg_base")
+       #  self.vgg16 = tf.keras.Sequential(self.vgg16, name="vgg_base")
         self.head = tf.keras.Sequential(self.head, name="vgg_head")
 
     def call(self, x):
         """ Passes input image through the network. """
         print("call")
-        x = self.vgg16(x)
+       #  x = self.vgg16(x)
         print("all")
         x = self.head(x)
         print("the")
